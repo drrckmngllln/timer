@@ -5,6 +5,7 @@ interface TimerState {
   initialTime: number;
   isRunning: boolean;
   lastUpdate: number;
+  townName: string;
 }
 
 // Timer Context Type
@@ -12,11 +13,13 @@ interface TimerContextType {
   timeLeft: number;
   initialTime: number;
   isRunning: boolean;
+  townName: string | undefined;
   formatTime: (seconds: number) => string;
   startTimer: () => void;
   pauseTimer: () => void;
   resetTimer: () => void;
   setInitialTime: (time: number) => void;
+  handleSetTownName: (townName: string) => void;
 }
 
 const TimerContext = createContext<TimerContextType | undefined>(undefined);
@@ -29,6 +32,8 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({
   const [initialTime, setInitialTime] = useState<number>(5);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [targetTime, setTargetTime] = useState<number | null>(null);
+  const [townName, setTownName] = useState<string | undefined>(undefined);
+
   const rafRef = useRef<number | null>(null);
   const storageKey = "timer-app-state-v2";
 
@@ -45,6 +50,7 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({
           setTargetTime(parsedState.targetTime);
         } else {
           setTimeLeft(parsedState.timeLeft);
+          setTownName(parsedState.townName);
           setTargetTime(null);
         }
       } catch (error) {
@@ -64,7 +70,8 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({
     newTimeLeft: number,
     newInitialTime: number,
     newIsRunning: boolean,
-    newTargetTime: number | null
+    newTargetTime: number | null,
+    newTownName: string | undefined
   ) => {
     const state = {
       timeLeft: newTimeLeft,
@@ -72,6 +79,7 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({
       isRunning: newIsRunning,
       lastUpdate: Date.now(),
       targetTime: newTargetTime,
+      townName: newTownName,
     };
     localStorage.setItem(storageKey, JSON.stringify(state));
   };
@@ -87,7 +95,7 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({
       const now = Date.now();
       const secondsLeft = Math.round((targetTime - now) / 1000);
       setTimeLeft(secondsLeft);
-      saveState(secondsLeft, initialTime, true, targetTime);
+      saveState(secondsLeft, initialTime, true, targetTime, townName);
 
       if (secondsLeft > -3600) {
         // allow up to 1 hour overtime
@@ -100,7 +108,7 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [isRunning, targetTime, initialTime]);
+  }, [isRunning, targetTime, initialTime, townName]);
 
   // Listen for storage changes from other tabs
   useEffect(() => {
@@ -111,6 +119,7 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({
             e.newValue
           );
           setInitialTime(parsedState.initialTime);
+          if (parsedState.townName) setTownName(parsedState.townName);
           setIsRunning(parsedState.isRunning);
           if (parsedState.isRunning && parsedState.targetTime) {
             setTargetTime(parsedState.targetTime);
@@ -137,14 +146,15 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({
       timeLeft > 0 ? timeLeft : initialTime * 60,
       initialTime,
       true,
-      newTargetTime
+      newTargetTime,
+      townName
     );
   };
 
   const pauseTimer = (): void => {
     setIsRunning(false);
     setTargetTime(null);
-    saveState(timeLeft, initialTime, false, null);
+    saveState(timeLeft, initialTime, false, null, townName);
   };
 
   const resetTimer = (): void => {
@@ -152,7 +162,7 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsRunning(false);
     setTimeLeft(newTimeLeft);
     setTargetTime(null);
-    saveState(newTimeLeft, initialTime, false, null);
+    saveState(newTimeLeft, initialTime, false, null, townName);
   };
 
   const updateInitialTime = (newInitialTime: number): void => {
@@ -161,7 +171,7 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({
     setTimeLeft(newTimeLeft);
     setIsRunning(false);
     setTargetTime(null);
-    saveState(newTimeLeft, newInitialTime, false, null);
+    saveState(newTimeLeft, newInitialTime, false, null, townName);
   };
 
   // Format time display
@@ -175,15 +185,22 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({
       .padStart(2, "0")}`;
   };
 
+  function handleSetTownName(townName: string) {
+    setTownName(townName);
+    saveState(timeLeft, initialTime, false, null, townName);
+  }
+
   const value: TimerContextType = {
     timeLeft,
     initialTime,
     isRunning,
+    townName,
     formatTime,
     startTimer,
     pauseTimer,
     resetTimer,
     setInitialTime: updateInitialTime,
+    handleSetTownName,
   };
 
   return (

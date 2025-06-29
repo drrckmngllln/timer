@@ -1,8 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { TimerProvider } from "./timerContext";
 import LandingPage from "./LandingPage";
 import ControllerPage from "./ControllerPage";
+import { TimerProvider } from "./TimerContext";
 
 const App: React.FC = () => {
   return (

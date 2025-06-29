@@ -1,12 +1,18 @@
-import { useTimer } from "./timerContext";
+import { useTimer } from "./TimerContext";
 
 export default function LandingPage() {
-  const { timeLeft, formatTime, isRunning } = useTimer();
+  const { timeLeft, formatTime, isRunning, townName } = useTimer();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="text-center space-y-8 max-w-md">
         <div className="space-y-4">
+          {/* {townName && (
+          )} */}
+          <div className="flex justify-center bg-gradient-to-r from-yellow-500 to-green-700 bg-clip-text text-transparent">
+            <p className="font-extrabold text-[8rem] border-b">{townName}</p>
+          </div>
+          <p className="font-semibold text-[1rem]">Pabbarayle 2025</p>
           {/* Timer Display - Only shown here */}
           <div
             className={`text-[10rem] font-mono font-bold transition-colors duration-300 ${

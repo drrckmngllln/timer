@@ -1,7 +1,6 @@
-import { Pause, Play, RotateCcw, Timer } from "lucide-react";
-import { useTimer } from "./timerContext";
-import { useNavigate } from "react-router-dom";
+import { Pause, Play, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTimer } from "./TimerContext";
 
 export default function ControllerPage() {
   const {
@@ -11,16 +10,20 @@ export default function ControllerPage() {
     startTimer,
     pauseTimer,
     resetTimer,
+    handleSetTownName,
+    townName,
   } = useTimer();
 
   const [minuteInput, setMinuteInput] = useState<string>(
     initialTime.toString()
   );
-  const navigate = useNavigate();
+
+  const [town, setTown] = useState<string | undefined>(townName);
 
   // Update minuteInput when initialTime changes (from other tabs)
   useEffect(() => {
     setMinuteInput(initialTime.toString());
+    if (townName) handleSetTownName(townName);
   }, [initialTime]);
 
   const handleMinuteInputChange = (
@@ -34,29 +37,15 @@ export default function ControllerPage() {
     setInitialTime(minutes);
   };
 
-  const handleBackToHome = (): void => {
-    navigate("/");
-  };
+  function setTownName() {
+    if (town) handleSetTownName(town);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
       <div className="max-w-2xl mx-auto space-y-8 pt-8">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <button
-            onClick={handleBackToHome}
-            className="text-indigo-600 hover:text-indigo-700 font-medium mb-4"
-          >
-            ← Back to Home
-          </button>
-          <h1 className="text-3xl font-bold text-gray-800">Timer Controller</h1>
-          <p className="text-sm text-gray-500">
-            Control the timer - view the countdown on the home page
-          </p>
-        </div>
-
         {/* Control Panel */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-white rounded-2xl shadow-lg p-4">
           <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
             Timer Controls
           </h2>
@@ -104,9 +93,6 @@ export default function ControllerPage() {
                 Timer is {isRunning ? "Running" : "Stopped"}
               </span>
             </div>
-            <p className="text-sm text-gray-500">
-              Go to the home page to see the countdown
-            </p>
           </div>
         </div>
 
@@ -140,23 +126,27 @@ export default function ControllerPage() {
           <p className="text-sm text-gray-500 mt-2">
             Current duration: {initialTime} minute{initialTime !== 1 ? "s" : ""}
           </p>
-        </div>
 
-        {/* Info Card */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <Timer className="w-5 h-5 text-blue-600 mt-0.5" />
-            <div>
-              <h3 className="text-sm font-semibold text-blue-800">
-                How it works
-              </h3>
-              <p className="text-sm text-blue-700 mt-1">
-                Use these controls to start, pause, or reset the timer. The
-                countdown will be visible on the home page. Timer state syncs
-                across all browser tabs automatically.
-              </p>
+          <h2 className="text-xl font-semibold text-gray-800 my-4">
+            Town Settings
+          </h2>
+          <div className="flex gap-4 items-end">
+            <div className="flex-1">
+              <input
+                value={town}
+                onChange={(e) => setTown(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
+                placeholder="Enter Town"
+              />
             </div>
+            <button
+              onClick={setTownName}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200"
+            >
+              Update Town
+            </button>
           </div>
+          <p className="text-sm text-gray-500 mt-2">Current Town: {townName}</p>
         </div>
       </div>
     </div>
